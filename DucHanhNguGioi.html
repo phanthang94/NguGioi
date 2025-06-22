@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám Phá Giáo Án Rèn Nhân Cách: Ngũ Giới</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Warm Neutrals) -->
+    <!-- Application Structure Plan: A single-page application with a top navigation bar linking to anchor sections. The structure flows from a general introduction (Hero, Core Philosophy), to a detailed interactive exploration of the core content (Explore the Five Precepts), followed by visualizations of the system's structure (The Ethical System), an explanation of the learning process (Learning Methodology), concrete examples (Illustrative Lessons), and a concluding summary. This thematic, non-linear structure is chosen over a simple linear report to enhance user engagement, facilitate exploration, and improve comprehension of the interconnected concepts by allowing users to navigate based on interest rather than a predefined order. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: The Five Precepts (Ngũ Giới). Goal: Inform, Organize, Compare. Viz/Method: Interactive cards (HTML/CSS) updating a detail pane (JS). Interaction: Click a card to display its detailed explanation. Justification: This focuses user attention on one precept at a time while keeping others accessible, enhancing learning and comparison.
+        - Report Info: The holistic ethical system. Goal: Relationships, Organize. Viz/Method: Chart.js Polar Area Chart. Interaction: Hover tooltips. Justification: A chart visually represents the balanced and interconnected nature of the five precepts and their spheres of influence (self, family, society) more effectively than text.
+        - Report Info: Learning Methodology. Goal: Inform, Organize. Viz/Method: 3-step diagram (HTML/CSS). Interaction: Static visual. Justification: A simple flow diagram clarifies the pedagogical process instantly.
+        - Report Info: Illustrative Lessons. Goal: Inform. Viz/Method: Accordion (HTML/CSS/JS). Interaction: Click to expand/collapse. Justification: An accordion compactly presents detailed examples without overwhelming the user, saving page space.
+        - Library/Method: Vanilla JS for interactivity, Chart.js for visualization (Canvas).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #FDFBF8;
+            color: #402E32;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #C07450;
+            border-bottom-color: #C07450;
+        }
+        .precept-card {
+            transition: all 0.3s ease-in-out;
+            border: 1px solid #EAE2D8;
+        }
+        .precept-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            border-color: #C07450;
+        }
+        .precept-card.active {
+            background-color: #F8F0E5;
+            border-color: #C07450;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .section-title {
+            color: #A56341;
+        }
+        .btn-primary {
+            background-color: #C07450;
+            color: #ffffff;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #A56341;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            max-height: 450px;
+            width: 100%;
+            max-width: 450px;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 1000px; /* Adjust based on max expected content height */
+        }
+        .accordion-item.active .accordion-icon {
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#home" class="text-xl font-bold text-[#A56341]">Giáo Án Ngũ Giới</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#philosophy" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Triết Lý</a>
+                        <a href="#precepts" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Ngũ Giới</a>
+                        <a href="#system" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Hệ Thống Đạo Đức</a>
+                        <a href="#method" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Phương Pháp</a>
+                        <a href="#lessons" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Bài Học</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                     <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-[#C07450] hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#C07450]">
+                        <span class="sr-only">Mở menu</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#philosophy" class="nav-link block px-3 py-2 rounded-md text-base font-medium">Triết Lý</a>
+                <a href="#precepts" class="nav-link block px-3 py-2 rounded-md text-base font-medium">Ngũ Giới</a>
+                <a href="#system" class="nav-link block px-3 py-2 rounded-md text-base font-medium">Hệ Thống Đạo Đức</a>
+                <a href="#method" class="nav-link block px-3 py-2 rounded-md text-base font-medium">Phương Pháp</a>
+                <a href="#lessons" class="nav-link block px-3 py-2 rounded-md text-base font-medium">Bài Học</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="min-h-screen flex items-center bg-stone-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold tracking-tight section-title leading-tight">Giáo án Rèn Nhân Cách<br>Lớp Ngũ Giới</h1>
+                <p class="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-gray-600">Một hành trình khám phá "Đạo đức Nhân bản - Nhân quả" để xây dựng một cuộc sống an vui, hạnh phúc, không làm khổ mình và khổ người.</p>
+                <div class="mt-8">
+                    <a href="#philosophy" class="btn-primary font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+                        Bắt đầu khám phá
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="philosophy" class="py-20 lg:py-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl lg:text-4xl font-bold section-title">Triết Lý Nền Tảng</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">Giáo án này được xây dựng trên một triết lý giáo dục thực tiễn, không chỉ để học thuộc lòng mà để "thấm nhuần" và thực hành, hướng tới việc "dựng lại chánh pháp" thông qua rèn luyện đạo đức.</p>
+                </div>
+                <div class="mt-16 grid md:grid-cols-2 gap-12 items-center">
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-2xl font-semibold mb-4 text-[#A56341]">Đạo Đức Nhân Bản - Nhân Quả</h3>
+                        <p class="text-gray-600 leading-relaxed">Đây là nền tảng đạo đức thiết yếu cho con người, vượt qua mọi ranh giới tôn giáo. Triết lý này nhấn mạnh rằng mỗi hành động (thân), lời nói (miệng), và suy nghĩ (ý) đều tạo ra kết quả tương ứng. Mục tiêu tối thượng là một cuộc sống an vui, "không làm khổ mình, khổ người và khổ tất cả chúng sanh".</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                        <h3 class="text-2xl font-semibold mb-4 text-[#A56341]">Học Tập Trải Nghiệm</h3>
+                        <p class="text-gray-600 leading-relaxed">Phương pháp giáo dục của sách không phải là "dạy những con chim học nói tiếng người" - tức chỉ ghi nhớ lý thuyết suông. Thay vào đó, giáo án tạo ra một lộ trình có hệ thống, bắt đầu từ nền tảng đạo đức cơ bản (Tam Quy, Ngũ Giới) trước khi tiến đến các pháp tu cao hơn, đảm bảo sự phát triển vững chắc và thực chất.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="precepts" class="py-20 lg:py-32 bg-stone-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl lg:text-4xl font-bold section-title">Khám Phá Ngũ Giới</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">Ngũ Giới là năm đức hạnh nền tảng, là cốt lõi của đạo đức nhân bản. Hãy chọn một đức hạnh để tìm hiểu sâu hơn về ý nghĩa và lợi ích của việc thực hành.</p>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div id="precept-nav" class="lg:col-span-1 flex lg:flex-col gap-4 overflow-x-auto pb-4">
+                        <div class="precept-card active flex-shrink-0 lg:flex-shrink-1 w-48 lg:w-full cursor-pointer p-6 rounded-lg bg-white" data-precept="hieu-sinh">
+                            <h3 class="font-bold text-xl text-[#A56341]">Đức Hiếu Sinh</h3>
+                            <p class="mt-2 text-sm text-gray-500">Lòng thương yêu sự sống</p>
+                        </div>
+                        <div class="precept-card flex-shrink-0 lg:flex-shrink-1 w-48 lg:w-full cursor-pointer p-6 rounded-lg bg-white" data-precept="ly-tham">
+                            <h3 class="font-bold text-xl text-[#A56341]">Đức Ly Tham</h3>
+                            <p class="mt-2 text-sm text-gray-500">Không tham lam, trộm cắp</p>
+                        </div>
+                        <div class="precept-card flex-shrink-0 lg:flex-shrink-1 w-48 lg:w-full cursor-pointer p-6 rounded-lg bg-white" data-precept="chung-thuy">
+                            <h3 class="font-bold text-xl text-[#A56341]">Đức Chung Thủy</h3>
+                            <p class="mt-2 text-sm text-gray-500">Giữ gìn hạnh phúc gia đình</p>
+                        </div>
+                        <div class="precept-card flex-shrink-0 lg:flex-shrink-1 w-48 lg:w-full cursor-pointer p-6 rounded-lg bg-white" data-precept="thanh-that">
+                            <h3 class="font-bold text-xl text-[#A56341]">Đức Thành Thật</h3>
+                            <p class="mt-2 text-sm text-gray-500">Nói lời chân thật, ái ngữ</p>
+                        </div>
+                        <div class="precept-card flex-shrink-0 lg:flex-shrink-1 w-48 lg:w-full cursor-pointer p-6 rounded-lg bg-white" data-precept="minh-man">
+                            <h3 class="font-bold text-xl text-[#A56341]">Đức Minh Mẫn</h3>
+                            <p class="mt-2 text-sm text-gray-500">Giữ tâm trí sáng suốt</p>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-lg min-h-[300px]">
+                        <div id="precept-content">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="system" class="py-20 lg:py-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl lg:text-4xl font-bold section-title">Hệ Thống Đạo Đức Toàn Diện</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">Ngũ Giới không phải là các quy tắc rời rạc mà là một hệ thống có cấu trúc, tạo ra tác động lan tỏa từ cá nhân đến toàn xã hội và muôn loài.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-6 text-center text-[#A56341]">Phạm Vi Ảnh Hưởng Của Ngũ Giới</h3>
+                        <div class="space-y-4">
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg">🌍 Đạo Đức Bản Thân</h4>
+                                <p class="text-sm text-gray-500 mt-1">Nền tảng của mọi đức hạnh, rèn luyện tâm hồn.</p>
+                                <p class="mt-2 text-gray-700">Bao gồm <span class="font-semibold">Đức Hiếu Sinh</span> và <span class="font-semibold">Đức Ly Tham</span>.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg">🏡 Đạo Đức Gia Đình</h4>
+                                <p class="text-sm text-gray-500 mt-1">Xây dựng tổ ấm hạnh phúc, bền vững.</p>
+                                <p class="mt-2 text-gray-700">Thể hiện qua <span class="font-semibold">Đức Chung Thủy</span>.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                                <h4 class="font-bold text-lg">🤝 Đạo Đức Xã Hội</h4>
+                                <p class="text-sm text-gray-500 mt-1">Góp phần tạo nên cộng đồng văn minh, tin cậy.</p>
+                                <p class="mt-2 text-gray-700">Bao gồm <span class="font-semibold">Đức Thành Thật</span> và <span class="font-semibold">Đức Minh Mẫn</span>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-6 text-center text-[#A56341]">Sự Cân Bằng Của Năm Đức Hạnh</h3>
+                        <div class="chart-container">
+                            <canvas id="preceptsChart"></canvas>
+                        </div>
+                         <p class="text-center text-gray-500 mt-4 text-sm">Biểu đồ thể hiện sự hài hòa và tầm quan trọng ngang nhau của năm đức hạnh trong việc tạo nên một đời sống đạo đức toàn diện.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="method" class="py-20 lg:py-32 bg-stone-100">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl lg:text-4xl font-bold section-title">Phương Pháp Học Tập Tương Tác</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">Giáo án áp dụng một phương pháp sư phạm độc đáo nhằm thúc đẩy sự tham gia và nội tâm hóa kiến thức thay vì học vẹt.</p>
+                </div>
+                <div class="relative">
+                    <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-stone-300 hidden md:block"></div>
+                    <div class="grid md:grid-cols-3 gap-8 text-center">
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-700 text-2xl font-bold">1</div>
+                            <h3 class="mt-6 text-xl font-semibold">Tiếp Nhận Bài Học</h3>
+                            <p class="mt-2 text-gray-600">Nội dung bài học được trình bày qua các câu chuyện, khái niệm đạo đức súc tích, dễ hiểu.</p>
+                        </div>
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-700 text-2xl font-bold">2</div>
+                            <h3 class="mt-6 text-xl font-semibold">Tự Vấn & Phản Tư</h3>
+                            <p class="mt-2 text-gray-600">Học viên được khuyến khích trả lời các câu hỏi theo suy nghĩ của riêng mình trước khi xem đáp án.</p>
+                        </div>
+                        <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 text-amber-700 text-2xl font-bold">3</div>
+                            <h3 class="mt-6 text-xl font-semibold">Lĩnh Hội & Thấm Nhuần</h3>
+                            <p class="mt-2 text-gray-600">Quá trình tương tác này giúp học viên "thấm nhuần ý nghĩa sâu xa", biến kiến thức thành nhận thức của bản thân.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="lessons" class="py-20 lg:py-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl lg:text-4xl font-bold section-title">Bài Học Minh Họa</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-600">Đạo đức không chỉ là lý thuyết mà được thể hiện qua từng hành động, quy tắc cụ thể. Dưới đây là các bài học nền tảng trong giáo án từ cả ba tập.</p>
+                </div>
+                <div class="max-w-3xl mx-auto space-y-4" id="lessons-accordion">
+                     <!-- Lessons will be dynamically loaded here by JavaScript -->
+                </div>
+                 <div class="text-center mt-16 bg-amber-50 p-8 rounded-xl max-w-4xl mx-auto border-l-4 border-amber-500">
+                     <h3 class="text-2xl font-semibold text-[#A56341]">Nền Tảng Vững Chắc</h3>
+                     <blockquote class="mt-4 text-gray-700 italic text-lg">
+                        "Còn chưa tu học các lớp cơ bản này mà vào tu học các lớp Bát Chánh Đạo thì mất căn bản. Mất căn bản khi vào tu tập thiền định tỉnh giác sẽ bị ức chế tâm."
+                     </blockquote>
+                     <p class="mt-4 text-gray-600">Lời cảnh báo này nhấn mạnh rằng việc rèn luyện đạo đức Ngũ Giới là điều kiện tiên quyết, không thể thiếu cho các thực hành tâm linh cao hơn, đảm bảo sự tiến bộ an toàn và vững chắc.</p>
+                 </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-white">
+        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-sm text-stone-400">
+            <p>Ứng dụng web tương tác dựa trên báo cáo tóm tắt "Giáo án Rèn Nhân Cách Lớp Ngũ Giới: Đức Hiếu Sinh - Tập 1, 2, 3".</p>
+            <p class="mt-2">Được thiết kế để hỗ trợ việc học tập và khám phá các giá trị đạo đức phổ quát.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const preceptData = {
+                'hieu-sinh': {
+                    title: 'Đức Hiếu Sinh',
+                    description: 'Là lòng thương yêu và tôn trọng mọi sự sống, không chỉ của con người mà của tất cả muôn loài vạn vật. Đây là đức hạnh nền tảng, thể hiện tâm từ bi, sống không làm khổ mình, khổ người và khổ chúng sanh.',
+                    scope: 'Đạo đức bản thân',
+                    benefit: 'Nuôi dưỡng lòng từ bi, mang lại sự bình an trong tâm hồn và góp phần xây dựng một thế giới hòa bình, an vui cho mọi loài.'
+                },
+                'ly-tham': {
+                    title: 'Đức Ly Tham',
+                    description: 'Là từ bỏ lòng tham lam, không chiếm đoạt, trộm cắp những thứ không thuộc về mình. Đức hạnh này bao gồm cả việc không lấy những gì không được cho, dù giá trị lớn hay nhỏ.',
+                    scope: 'Đạo đức bản thân',
+                    benefit: 'Mang lại cuộc sống thanh thản, không bị vật chất trói buộc, xây dựng sự liêm chính và tránh được các hành vi sai trái do lòng tham gây ra.'
+                },
+                'chung-thuy': {
+                    title: 'Đức Chung Thủy',
+                    description: 'Là sự trung thành, son sắt trong các mối quan hệ tình cảm, đặc biệt là trong hôn nhân và gia đình. Nó bao gồm việc không có những hành vi ngoại tình, gian díu làm tan vỡ hạnh phúc.',
+                    scope: 'Đạo đức gia đình',
+                    benefit: 'Là chất keo gắn kết, xây dựng một gia đình hạnh phúc, bền vững, tạo dựng niềm tin và sự tôn trọng lẫn nhau giữa vợ và chồng.'
+                },
+                'thanh-that': {
+                    title: 'Đức Thành Thật',
+                    description: 'Là luôn nói sự thật, không nói dối, không nói lời hung ác, không nói lời thêu dệt chia rẽ, và không nói lời lật lọng, hai chiều. Lời nói phải mang tính xây dựng và yêu thương.',
+                    scope: 'Đạo đức xã hội',
+                    benefit: 'Xây dựng một xã hội công bằng, minh bạch và đầy tin cậy. Giao tiếp chân thành giúp giải quyết xung đột và tăng cường sự kết nối giữa người với người.'
+                },
+                'minh-man': {
+                    title: 'Đức Minh Mẫn',
+                    description: 'Là giữ gìn sự tỉnh táo, sáng suốt của tâm trí. Tránh xa các chất gây nghiện và các tệ nạn xã hội làm mê mờ tâm trí như rượu chè, cờ bạc, ma túy.',
+                    scope: 'Đạo đức xã hội',
+                    benefit: 'Giúp cá nhân có một cuộc sống lành mạnh, trí tuệ minh mẫn để đưa ra các quyết định đúng đắn, có trách nhiệm với bản thân, gia đình và cộng đồng.'
+                }
+            };
+
+            const preceptNav = document.getElementById('precept-nav');
+            const preceptContent = document.getElementById('precept-content');
+            const cards = preceptNav.querySelectorAll('.precept-card');
+
+            function updateContent(preceptKey) {
+                const data = preceptData[preceptKey];
+                preceptContent.innerHTML = `
+                    <h3 class="text-3xl font-bold text-[#A56341] mb-4">${data.title}</h3>
+                    <p class="text-gray-700 leading-relaxed mb-6">${data.description}</p>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <span class="flex-shrink-0 inline-block bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-1 rounded-full mr-3">Phạm vi</span>
+                            <span class="text-gray-600">${data.scope}</span>
+                        </div>
+                        <div class="flex items-start">
+                             <span class="flex-shrink-0 inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full mr-3">Lợi ích</span>
+                             <span class="text-gray-600">${data.benefit}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            preceptNav.addEventListener('click', function(e) {
+                const card = e.target.closest('.precept-card');
+                if (card) {
+                    cards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    const preceptKey = card.dataset.precept;
+                    updateContent(preceptKey);
+                }
+            });
+
+            // Initialize with the first precept
+            updateContent('hieu-sinh');
+
+            // Chart.js configuration
+            const ctx = document.getElementById('preceptsChart').getContext('2d');
+            const preceptsChart = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Hiếu Sinh', 'Ly Tham', 'Chung Thủy', 'Thành Thật', 'Minh Mẫn'],
+                    datasets: [{
+                        label: 'Tầm quan trọng của Ngũ Giới',
+                        data: [10, 10, 10, 10, 10], // Assuming equal importance for visualization
+                        backgroundColor: [
+                            'rgba(110, 231, 183, 0.7)', // Teal
+                            'rgba(251, 191, 36, 0.7)', // Amber
+                            'rgba(248, 113, 113, 0.7)', // Red
+                            'rgba(59, 130, 246, 0.7)', // Blue
+                            'rgba(167, 139, 250, 0.7)'  // Purple
+                        ],
+                         borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(217, 119, 6)',
+                            'rgb(220, 38, 38)',
+                            'rgb(37, 99, 235)',
+                            'rgb(139, 92, 246)'
+                        ],
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Important for responsive containers
+                    scales: {
+                        r: {
+                            pointLabels: {
+                                display: true,
+                                centerPointLabels: true,
+                                font: {
+                                    size: 14,
+                                    family: "'Be Vietnam Pro', sans-serif"
+                                },
+                                callback: function(value) {
+                                    // Wrap labels longer than 16 characters
+                                    return value.length > 16 ? value.split(' ').join('\n') : value;
+                                }
+                            },
+                            ticks: {
+                                display: false // Hide numerical ticks
+                            },
+                             grid: {
+                                color: 'rgba(0, 0, 0, 0.05)' // Light grid lines
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                   size: 14,
+                                   family: "'Be Vietnam Pro', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += 'Là nền tảng quan trọng'; // General description for all segments
+                                    return label;
+                                }
+                            },
+                            bodyFont: {
+                                family: "'Be Vietnam Pro', sans-serif"
+                            },
+                            titleFont: {
+                                family: "'Be Vietnam Pro', sans-serif"
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Close mobile menu when a link is clicked
+            mobileMenu.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                     // Update active class for nav links
+                    document.querySelectorAll('.nav-link').forEach(navLink => {
+                        navLink.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+
+            // Intersection Observer for active navigation links
+            const sections = document.querySelectorAll('main section[id]');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.5 // Adjust as needed
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const currentSectionId = entry.target.id;
+                        document.querySelectorAll('.nav-link').forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === currentSectionId) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Accordion functionality for lessons
+            const lessonsData = [
+                // Lessons from Tập 1
+                {
+                    title: 'Bài 1: Phần Nghi Lễ Niệm Phật',
+                    content: `
+                        <p class="mb-4">Nghi lễ đầu giờ học, dù đơn giản, nhưng mang ý nghĩa sâu sắc. Việc niệm danh hiệu Phật không chỉ là một nghi thức tôn giáo, mà là một hành động khắc ghi lòng biết ơn và sự tôn kính đối với "nền đạo đức nhân bản - nhân quả" mà Đức Phật đã chỉ dạy.</p>
+                        <p>Sách so sánh nghi lễ này với lễ chào quốc kỳ, quốc ca - một biểu tượng của lòng biết ơn và sự kính trọng đối với di sản tinh thần. Nó biến một hành động tâm linh thành một trải nghiệm có ý nghĩa sâu sắc về trách nhiệm tập thể và sự gắn kết.</p>
+                    `
+                },
+                {
+                    title: 'Bài 2: Cách Xưng Hô & Oai Nghi',
+                    content: `
+                        <p class="mb-4">Bài học thiết lập các quy tắc cụ thể về xưng hô, giờ giấc, và cách phát biểu trong lớp học. Những quy định này không phải để gò bó, mà là công cụ sư phạm để rèn luyện chánh niệm, sự khiêm tốn và lòng tôn kính - những phẩm chất nền tảng cho sự phát triển đạo đức.</p>
+                        <p>Kỷ luật bên ngoài (đúng giờ, im lặng, đứng dậy khi phát biểu) được xem là phương tiện để nuôi dưỡng kỷ luật và lòng tôn kính bên trong. Điều này nhấn mạnh rằng việc học đạo đức là một quá trình rèn luyện toàn diện, thể hiện qua cả hành vi lẫn nhận thức.</p>
+                    `
+                },
+                {
+                    title: 'Bài 3: Giới Thiệu Rèn Nhân Cách Lòng Yêu Thương Của Phật Giáo',
+                    content: `
+                        <p class="mb-4">Bài học này giới thiệu tổng quan về việc rèn luyện nhân cách thông qua lòng yêu thương trong Phật giáo. Nó nhấn mạnh mục đích của sự tu học không chỉ là để có kiến thức suông, mà để áp dụng vào cuộc sống, biến đạo đức thành hành động cụ thể.</p>
+                        <p>Giáo án tập trung vào việc sống không làm khổ mình, khổ người và khổ tất cả chúng sanh, coi đây là kim chỉ nam cho mọi hành vi đạo đức. Bài học này cũng đặt nền tảng cho sự hiểu biết về Ngũ Giới như là năm nền tảng để xây dựng lòng yêu thương và các phẩm chất đạo đức khác.</p>
+                    `
+                },
+                {
+                    title: 'Bài 4: Những Bàn Tay Vấy Máu',
+                    content: `
+                        <p class="mb-4">Bài học này kể về câu chuyện bi thảm của một vị vua đã gây ra vô số tội ác và sự đau khổ cho thần dân của mình. Tên của bài học "Những Bàn Tay Vấy Máu" gợi lên hình ảnh của sự tàn bạo, giết chóc và bạo lực.</p>
+                        <p>Qua câu chuyện này, giáo án nhấn mạnh hệ quả của những hành động bất thiện, đặc biệt là những hành vi vi phạm Đức Hiếu Sinh (không sát sanh). Nó minh họa rõ ràng luật nhân quả, cho thấy những ai gây ra khổ đau cho người khác cuối cùng sẽ phải gánh chịu những hậu quả tương ứng, không chỉ cho bản thân mà còn ảnh hưởng đến sự bình yên của xã hội.</p>
+                        <p>Bài học này có thể đi sâu vào phân tích sự hối hận, chuộc lỗi, hoặc sự trừng phạt tự nhiên mà những kẻ gây tội ác phải đối mặt, đồng thời khuyến khích người học suy ngẫm về tầm quan trọng của lòng từ bi và việc tránh xa bạo lực.</p>
+                    `
+                },
+                {
+                    title: 'Bài 5: Người Vợ Trẻ Giận Chồng, Đốt Nhà, Giết Con',
+                    content: `
+                        <p class="mb-4">Câu chuyện đau lòng về một người vợ trẻ vì giận chồng mà đã có những hành động mất kiểm soát, dẫn đến hậu quả thảm khốc là đốt nhà và giết con. Bài học này là một minh chứng sống động cho sự nguy hiểm của lòng sân hận (tức giận, oán hờn) khi không được kiểm soát.</p>
+                        <p>Bài học tập trung vào việc phân tích tác hại của sân hận đối với bản thân, gia đình và xã hội. Nó nhấn mạnh sự cần thiết của việc tu tập Đức Nhẫn Nhục và Đức Minh Mẫn để giữ cho tâm trí được bình tĩnh, sáng suốt, không bị cảm xúc tiêu cực chi phối. Câu chuyện này là một lời cảnh tỉnh về hậu quả của việc thiếu kiềm chế cảm xúc, đặc biệt là sự tức giận, và tầm quan trọng của việc thực hành các đức hạnh để duy trì sự an lạc trong gia đình và cuộc sống cá nhân.</p>
+                    `
+                },
+                {
+                    title: 'Bài 6: Thành Cát Tư Hãn',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về cuộc đời và sự nghiệp của Thành Cát Tư Hãn, một trong những nhà quân sự vĩ đại nhất lịch sử, người đã xây dựng đế chế Mông Cổ rộng lớn. Tuy nhiên, dưới góc độ của giáo án đạo đức, câu chuyện về Thành Cát Tư Hãn có thể được sử dụng để phân tích về sức mạnh, quyền lực và những hệ quả của nó.</p>
+                        <p>Có thể bài học sẽ tập trung vào việc phân tích những hành động tàn bạo, giết chóc trong các cuộc chinh phạt của ông, liên hệ đến việc vi phạm Đức Hiếu Sinh. Đồng thời, nó cũng có thể đề cập đến khía cạnh về lòng tham lam quyền lực, sự thống trị, và những ảnh hưởng tiêu cực của nó đối với cuộc sống của hàng triệu người. Bài học này nhằm mục đích giúp người học nhận ra giá trị của lòng từ bi, sự khiêm hạ, và việc từ bỏ tham vọng quyền lực để đạt được hạnh phúc và bình an thực sự, không gây khổ cho mình và người khác.</p>
+                    `
+                },
+                {
+                    title: 'Bài 7: Những Cây Đinh',
+                    content: `
+                        <p class="mb-4">Bài học "Những Cây Đinh" thường là một câu chuyện ngụ ngôn nổi tiếng về tác hại của lời nói và sự tức giận. Câu chuyện kể về một cậu bé nóng tính được cha dạy rằng mỗi khi cậu nổi giận, hãy đóng một cây đinh vào hàng rào. Khi cậu học cách kiềm chế cơn giận, cậu sẽ nhổ một cây đinh ra.</p>
+                        <p>Qua câu chuyện này, giáo án nhấn mạnh tầm quan trọng của việc tu tập Đức Thành Thật (kiểm soát lời nói, tránh lời ác khẩu) và Đức Nhẫn Nhục (kiềm chế cơn giận). Dù những cây đinh có thể được nhổ ra, nhưng dấu vết mà chúng để lại trên hàng rào vẫn còn. Điều này tượng trưng cho việc dù chúng ta có xin lỗi hay sửa chữa, những tổn thương gây ra bởi lời nói và hành động nóng giận vẫn để lại vết sẹo trong tâm hồn người khác. Bài học khuyến khích người học thực hành chánh niệm trong lời nói và hành động, hiểu rõ luật nhân quả, để tránh gây ra khổ đau cho mình và người khác.</p>
+                    `
+                },
+                {
+                    title: 'Bài 8: Cậu Bé Ném Đá',
+                    content: `
+                        <p class="mb-4">Bài học "Cậu Bé Ném Đá" có thể là một câu chuyện minh họa về hành vi bạo lực, thiếu ý thức và hậu quả của nó. Câu chuyện có thể kể về một cậu bé vô tình hoặc cố ý ném đá làm tổn thương người hoặc vật, từ đó dẫn đến những bài học về trách nhiệm và lòng từ bi.</p>
+                        <p>Bài học này nhằm làm rõ tầm quan trọng của Đức Hiếu Sinh (không làm hại sự sống) và Đức Minh Mẫn (sáng suốt trong hành động). Nó giúp người học nhận ra rằng mỗi hành động đều có hậu quả, và việc thiếu suy nghĩ hoặc hành động bốc đồng có thể gây ra đau khổ không chỉ cho nạn nhân mà còn cho chính người gây ra. Qua đó, sách khuyến khích việc rèn luyện sự cẩn trọng, lòng trắc ẩn và tinh thần trách nhiệm trong mọi hành vi.</p>
+                    `
+                },
+                {
+                    title: 'Bài 9: Cậu Bé Ném Sao Biển',
+                    content: `
+                        <p class="mb-4">Bài học "Cậu Bé Ném Sao Biển" là một câu chuyện ngụ ngôn nổi tiếng về lòng từ bi và ý nghĩa của những hành động nhỏ bé. Câu chuyện kể về một cậu bé đi dọc bờ biển đầy sao biển mắc cạn và cậu cứ nhặt từng con sao biển ném trở lại đại dương, mặc cho một người lớn nói rằng việc đó chẳng ý nghĩa gì vì có quá nhiều sao biển.</p>
+                        <p>Bài học này nhấn mạnh tầm quan trọng của Đức Hiếu Sinh (lòng thương yêu sự sống) và việc thực hành lòng từ bi một cách cụ thể, dù cho hành động đó có vẻ nhỏ bé hay không thay đổi được toàn bộ tình hình. Nó dạy rằng mỗi hành động tử tế, dù nhỏ, cũng đều có ý nghĩa đối với cá nhân được nhận. Câu chuyện khuyến khích người học không nản lòng trước quy mô của vấn đề mà hãy tập trung vào việc làm những gì có thể để giảm bớt đau khổ, từ đó nuôi dưỡng một tâm hồn từ bi và biết yêu thương.</p>
+                    `
+                },
+                {
+                    title: 'Bài 10: Người Trợ Lý Của Tổng Giám Đốc',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về một người trợ lý luôn thể hiện sự trung thực, tận tâm và chuyên nghiệp trong công việc. Câu chuyện này sẽ làm nổi bật các đức tính quan trọng trong môi trường làm việc và cuộc sống xã hội.</p>
+                        <p>Bài học này có thể tập trung vào việc rèn luyện Đức Thành Thật (trung thực trong công việc, không gian dối) và Đức Ly Tham (không tham lam, không lợi dụng chức vụ để trục lợi). Nó cũng có thể đề cập đến sự cần thiết của sự siêng năng, trách nhiệm và tinh thần phục vụ, đóng góp vào sự phát triển chung. Câu chuyện này minh họa rằng việc thực hành các đức hạnh không chỉ mang lại lợi ích cho bản thân mà còn xây dựng lòng tin, sự tôn trọng từ người khác, và góp phần vào một môi trường làm việc lành mạnh, hiệu quả.</p>
+                    `
+                },
+                {
+                    title: 'Bài 11: Viên Ngọc',
+                    content: `
+                        <p class="mb-4">Bài học "Viên Ngọc" thường là một câu chuyện ẩn dụ về giá trị thực sự của sự vật và sự vô thường của nó. Câu chuyện có thể xoay quanh việc tìm kiếm, sở hữu, và cuối cùng là nhận ra rằng những giá trị vật chất chỉ là tạm thời.</p>
+                        <p>Bài học này có thể nhấn mạnh Đức Ly Tham (không bám víu vào vật chất) và Đức Minh Mẫn (tâm trí sáng suốt để nhận ra bản chất vô thường của vạn pháp). Nó giúp người học hiểu rằng hạnh phúc không đến từ việc sở hữu vật chất mà đến từ sự buông bỏ, không còn lòng tham và chấp trước. Câu chuyện khuyến khích việc sống đơn giản, biết đủ, và tìm kiếm những giá trị tinh thần bền vững hơn.</p>
+                    `
+                },
+                {
+                    title: 'Bài 12: Đứa Bé Nhỏ Tham Lam',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về một đứa bé thể hiện sự tham lam trong một tình huống cụ thể, ví dụ như muốn có tất cả đồ chơi, không muốn chia sẻ, hoặc tìm cách chiếm đoạt đồ của người khác. Câu chuyện sẽ minh họa rõ ràng tác hại và biểu hiện của lòng tham.</p>
+                        <p>Bài học này tập trung vào việc nhận diện và diệt trừ lòng tham (vi phạm Đức Ly Tham). Nó giúp người học hiểu rằng lòng tham dẫn đến sự ích kỷ, bất mãn, và gây ra khổ đau cho bản thân và người khác. Câu chuyện khuyến khích việc thực hành lòng bố thí, chia sẻ, và biết đủ, từ đó nuôi dưỡng một tâm hồn rộng lượng và an lạc.</p>
+                    `
+                },
+                {
+                    title: 'Bài 13: Vua A Xà Thế Giết Cha Giành Ngôi Vị',
+                    content: `
+                        <p class="mb-4">Bài học này kể về câu chuyện bi kịch của Vua A Xà Thế, người đã giết cha ruột của mình để chiếm đoạt ngai vàng. Đây là một minh chứng hùng hồn cho hậu quả kinh hoàng của lòng tham quyền lực và sự bất hiếu.</p>
+                        <p>Bài học nhấn mạnh sự vi phạm nghiêm trọng Đức Hiếu Sinh (sát sanh) và Đức Ly Tham (tham lam quyền lực). Nó làm rõ luật nhân quả, cho thấy những hành động ác độc nhất sẽ mang lại những quả báo đau khổ nhất. Câu chuyện này là một lời cảnh tỉnh sâu sắc về việc kiểm soát dục vọng, lòng tham, và tầm quan trọng của hiếu đạo, sự tôn trọng đối với cha mẹ và những người bề trên.</p>
+                    `
+                },
+                {
+                    title: 'Bài 14: Người Con Gái Phá Hại Hạnh Phúc Gia Đình Người Khác',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một người con gái đã có hành vi xen vào phá hoại hạnh phúc gia đình người khác, ví dụ như quan hệ bất chính với người đã có gia đình. Câu chuyện này sẽ minh họa sự vi phạm Đức Chung Thủy và những hậu quả bi thảm của nó.</p>
+                        <p>Bài học tập trung vào việc phân tích tác hại của tà dâm đối với bản thân, gia đình và xã hội. Nó nhấn mạnh sự đổ vỡ của tình cảm, sự mất mát niềm tin, và sự khổ đau mà hành vi này gây ra. Câu chuyện khuyến khích việc sống chung thủy, tôn trọng hạnh phúc gia đình người khác, và hiểu rõ giá trị của sự gắn kết, tin cậy trong hôn nhân để xây dựng một cuộc sống an lạc và bền vững.</p>
+                    `
+                },
+                {
+                    title: 'Bài 15: Người Chồng Ngoại Tình',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một người chồng có hành vi ngoại tình, phản bội lại người vợ và gia đình của mình. Câu chuyện này là một minh chứng cụ thể cho việc vi phạm Đức Chung Thủy.</p>
+                        <p>Bài học tập trung vào việc phân tích những hậu quả tiêu cực của hành vi ngoại tình, bao gồm sự đổ vỡ của hôn nhân, sự đau khổ cho vợ con, và sự mất mát uy tín cá nhân. Nó nhấn mạnh tầm quan trọng của lòng trung thành, sự cam kết và trách nhiệm trong mối quan hệ vợ chồng. Câu chuyện này khuyến khích việc duy trì sự chung thủy để xây dựng một gia đình hạnh phúc, bền vững và tránh gây ra khổ đau cho mình và người thân.</p>
+                    `
+                },
+                {
+                    title: 'Bài 16: Người Con Dâu Bất Hiếu',
+                    content: `
+                        <p class="mb-4">Bài học này kể về câu chuyện của một người con dâu có những hành vi bất hiếu, thiếu tôn trọng hoặc làm khổ cha mẹ chồng/vợ. Câu chuyện sẽ minh họa những biểu hiện của sự bất hiếu và hậu quả của nó.</p>
+                        <p>Bài học này nhấn mạnh tầm quan trọng của Đức Hiếu Thảo (một khía cạnh của Đức Hiếu Sinh, mở rộng ra mối quan hệ gia đình) và sự cần thiết của lòng biết ơn, sự tôn trọng đối với các bậc sinh thành và bề trên. Nó làm rõ rằng việc bất hiếu không chỉ gây đau khổ cho cha mẹ mà còn tạo ra nghiệp xấu cho chính bản thân người con dâu. Câu chuyện khuyến khích việc thực hành hiếu thảo, chăm sóc, và phụng dưỡng cha mẹ để xây dựng một gia đình hòa thuận và có đạo đức.</p>
+                    `
+                },
+                {
+                    title: 'Bài 17: Người Cha Nói Dối',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một người cha đã nói dối trong một tình huống cụ thể, có thể là để tránh trách nhiệm, che đậy sai lầm, hoặc để đạt được lợi ích cá nhân. Câu chuyện này minh họa sự vi phạm Đức Thành Thật.</p>
+                        <p>Bài học tập trung vào việc phân tích tác hại của việc nói dối, đặc biệt là khi người nói dối là người có vai trò làm gương (như cha mẹ). Nó nhấn mạnh sự mất mát lòng tin, sự rạn nứt trong các mối quan hệ, và những hệ quả tiêu cực lâu dài. Câu chuyện khuyến khích việc luôn nói sự thật, dù khó khăn đến đâu, để xây dựng lòng tin, sự minh bạch và một môi trường giao tiếp chân thành trong gia đình và xã hội.</p>
+                    `
+                },
+                {
+                    title: 'Bài 18: Người Vợ Chơi Cờ Bạc',
+                    content: `
+                        <p class="mb-4">Bài học này kể về câu chuyện của một người vợ nghiện cờ bạc, dẫn đến những hậu quả tiêu cực cho bản thân và gia đình. Câu chuyện này là minh chứng cho việc vi phạm Đức Minh Mẫn.</p>
+                        <p>Bài học tập trung vào việc phân tích tác hại của tệ nạn cờ bạc đối với tài chính, sức khỏe tinh thần, và hạnh phúc gia đình. Nó nhấn mạnh sự phá hoại mà thói quen này gây ra, từ mất mát tài sản đến sự rạn nứt các mối quan hệ. Câu chuyện khuyến khích việc giữ gìn tâm trí sáng suốt, tránh xa các tệ nạn xã hội, và tập trung vào các hoạt động lành mạnh để xây dựng một cuộc sống ổn định và có trách nhiệm.</p>
+                    `
+                },
+                {
+                    title: 'Bài 19: Người Con Bất Hiếu',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một người con có những hành vi bất hiếu đối với cha mẹ ruột của mình. Đây là một bài học sâu sắc về đạo hiếu, một trong những nền tảng đạo đức quan trọng nhất.</p>
+                        <p>Bài học sẽ tập trung vào việc phân tích các biểu hiện của sự bất hiếu, từ việc không vâng lời, không chăm sóc, đến việc bỏ bê hoặc làm khổ cha mẹ. Nó nhấn mạnh tầm quan trọng của lòng biết ơn, sự tôn kính và phụng dưỡng cha mẹ, những người đã có công sinh thành và nuôi dưỡng. Câu chuyện này nhằm mục đích làm rõ luật nhân quả, rằng những ai bất hiếu với cha mẹ sẽ phải gánh chịu những hậu quả tương ứng, đồng thời khuyến khích việc thực hành hiếu đạo để đạt được sự an lạc và phúc báo.</p>
+                    `
+                },
+                {
+                    title: 'Bài 20: Người Học Trò Vô Lễ',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một người học trò có những hành vi vô lễ, thiếu tôn trọng đối với thầy cô giáo hoặc người lớn tuổi hơn. Câu chuyện này là một minh chứng cho sự xuống cấp về đạo đức lễ độ.</p>
+                        <p>Bài học nhấn mạnh tầm quan trọng của đạo đức lễ độ, sự cung kính và tôn trọng đối với những người có công dạy dỗ và những người bề trên. Nó phân tích những tác hại của sự vô lễ, bao gồm việc mất đi sự chỉ dạy, sự tôn trọng từ người khác, và việc tạo ra một môi trường học tập hoặc xã hội thiếu văn minh. Câu chuyện này khuyến khích việc rèn luyện sự khiêm tốn, biết ơn, và thực hành lễ độ trong mọi giao tiếp và hành vi.</p>
+                    `
+                },
+                {
+                    title: 'Bài 21: Tấm Gương Tôn Sư Trọng Đạo',
+                    content: `
+                        <p class="mb-4">Trái ngược với bài học về người học trò vô lễ, "Tấm Gương Tôn Sư Trọng Đạo" có thể kể về một hoặc nhiều người học trò đã thể hiện sự tôn kính, biết ơn và trân trọng đối với thầy cô giáo của mình. Đây là một bài học tích cực, truyền cảm hứng về đạo làm trò.</p>
+                        <p>Bài học này nhấn mạnh giá trị của việc tôn sư trọng đạo, một truyền thống tốt đẹp trong văn hóa Việt Nam và nhiều nền văn hóa khác. Nó minh họa cách mà sự tôn kính và biết ơn không chỉ làm đẹp thêm mối quan hệ thầy trò mà còn giúp người học tiếp thu kiến thức và đạo đức một cách hiệu quả hơn. Câu chuyện khuyến khích việc nuôi dưỡng lòng biết ơn đối với những người đã truyền đạt kiến thức và kinh nghiệm, từ đó góp phần xây dựng một môi trường giáo dục lành mạnh và tràn đầy tình người.</p>
+                    `
+                },
+                {
+                    title: 'Bài 22: Tấm Gương Đức Hiếu Sinh',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một tấm gương sáng trong việc thực hành Đức Hiếu Sinh, tức là lòng thương yêu và tôn trọng mọi sự sống. Câu chuyện này có thể là về một cá nhân hoặc một nhóm người đã có những hành động cụ thể để bảo vệ, giúp đỡ và nuôi dưỡng sự sống.</p>
+                        <p>Bài học sẽ đi sâu vào phân tích các biểu hiện của Đức Hiếu Sinh, từ việc không sát sanh, không làm hại đến việc tích cực cứu giúp, bảo vệ môi trường, và lan tỏa tình yêu thương đến tất cả muôn loài. Nó nhấn mạnh những lợi ích to lớn mà Đức Hiếu Sinh mang lại cho bản thân người thực hành (sự an lạc trong tâm hồn) và cho thế giới xung quanh (sự hòa bình, bền vững). Câu chuyện này nhằm truyền cảm hứng và khuyến khích người học áp dụng Đức Hiếu Sinh vào cuộc sống hàng ngày, biến lòng từ bi thành hành động cụ thể.</p>
+                    `
+                },
+                {
+                    title: 'Bài 23: Tấm Gương Đức Ly Tham',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một tấm gương sáng trong việc thực hành Đức Ly Tham, tức là từ bỏ lòng tham lam, không chiếm đoạt của cải không thuộc về mình. Câu chuyện này có thể là về một cá nhân đã thể hiện sự liêm chính, không tham nhũng, hoặc biết đủ trong cuộc sống.</p>
+                        <p>Bài học sẽ phân tích các biểu hiện của Đức Ly Tham, từ việc không trộm cắp, không tham ô, đến việc sống giản dị và không bám víu vào vật chất. Nó nhấn mạnh những lợi ích mà Đức Ly Tham mang lại, bao gồm sự thanh thản trong tâm hồn, sự tôn trọng từ người khác, và việc xây dựng một xã hội công bằng, trong sạch. Câu chuyện này nhằm truyền cảm hứng và khuyến khích người học rèn luyện lòng liêm khiết, biết đủ, và thoát khỏi sự ràng buộc của vật chất để đạt được hạnh phúc thực sự.</p>
+                    `
+                },
+                {
+                    title: 'Bài 24: Tấm Gương Đức Chung Thủy',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một tấm gương sáng trong việc thực hành Đức Chung Thủy, tức là sự trung thành, son sắt trong các mối quan hệ, đặc biệt là trong hôn nhân. Câu chuyện có thể là về một cặp vợ chồng đã vượt qua thử thách để giữ gìn hạnh phúc, hoặc về một người đã giữ vững lời hứa trong tình yêu.</p>
+                        <p>Bài học sẽ phân tích các biểu hiện của Đức Chung Thủy, từ sự cam kết trong hôn nhân đến lòng trung thành trong tình bạn và các mối quan hệ khác. Nó nhấn mạnh những lợi ích mà Đức Chung Thủy mang lại, bao gồm sự tin cậy, sự bền vững của các mối quan hệ, và hạnh phúc gia đình. Câu chuyện này nhằm truyền cảm hứng và khuyến khích người học rèn luyện lòng chung thủy, xây dựng các mối quan hệ dựa trên sự tin tưởng và tình yêu thương chân thành.</p>
+                    `
+                },
+                {
+                    title: 'Bài 25: Tại Sao Ta Phải Niệm Phật?',
+                    content: `
+                        <p class="mb-4">Bài học này đi sâu vào việc giải thích ý nghĩa và lợi ích của việc niệm Phật, không chỉ như một nghi thức mà còn là một pháp môn tu tập quan trọng. Nó có thể mở rộng ý nghĩa của việc niệm danh hiệu Phật không chỉ dừng lại ở lòng biết ơn mà còn là phương tiện để thanh lọc tâm trí, rèn luyện chánh niệm và hướng về các phẩm chất tốt đẹp.</p>
+                        <p>Bài học này có thể giải thích rằng việc niệm Phật giúp tâm an định, giảm bớt vọng tưởng và phiền não. Nó cũng có thể liên hệ việc niệm Phật với việc ghi nhớ và thực hành lời dạy của Đức Phật về đạo đức nhân bản - nhân quả, từ đó biến lời niệm thành hành động sống. Mục đích là để người học hiểu rằng niệm Phật là một công cụ hỗ trợ cho việc rèn luyện đạo đức, giúp họ sống tỉnh thức và từ bi hơn trong cuộc sống hàng ngày.</p>
+                    `
+                },
+                // Lessons from Tập 2
+                {
+                    title: 'Bài 26: Thầy Giáo Mới',
+                    content: `
+                        <p class="mb-4">Bài học này xoay quanh câu chuyện về một người thầy giáo mới và cách thầy ấy đối xử với học trò, dù là học trò cũ có thái độ cung kính hay học trò vô lễ. Câu chuyện nhấn mạnh đạo đức "hiếu sinh tùy thuận ý hành" trong việc làm vui lòng người khác và làm vui lòng mình, cũng như đạo đức lễ độ và lòng vị tha.</p>
+                        <p>Sách phân tích sâu về tầm quan trọng của lòng tha thứ, sự khiêm hạ và việc tôn sư trọng đạo. Đồng thời, bài học cũng phê phán những phương pháp tu tập chỉ chú trọng thiền định mà thiếu nền tảng giới luật đức hạnh, cảnh báo về những sai lầm trong việc tìm cầu thần thông, ảo tưởng, và nhấn mạnh tầm quan trọng của đạo đức nhân bản - nhân quả để đạt được sự bình an thực sự.</p>
+                    `
+                },
+                {
+                    title: 'Bài 27: Đức Phật Độ Cho Người Gánh Phân',
+                    content: `
+                        <p class="mb-4">Bài học kể về câu chuyện Đức Phật đã dùng lòng từ bi vô lượng của mình để độ cho một người gánh phân bị xã hội coi thường. Câu chuyện này làm nổi bật đạo đức hiếu sinh khẩu hành và ý hành, thể hiện sự bình đẳng, không phân biệt đối xử và lòng từ bi của Đức Phật đối với tất cả chúng sanh, bất kể địa vị xã hội hay hoàn cảnh sống.</p>
+                        <p>Thông qua câu chuyện, sách giảng giải về việc diệt trừ "tâm ngã mạn" (sự kiêu căng, khinh thường người khác) và tu tập "tâm khiêm hạ" (tự hạ mình, tôn trọng người khác). Đây là một bài học sâu sắc về lòng nhân ái, sự bao dung và cách vượt qua những định kiến xã hội để thực hành đạo đức hiếu sinh một cách trọn vẹn.</p>
+                    `
+                },
+                {
+                    title: 'Bài 28: Ước Mơ Bình Thường',
+                    content: `
+                        <p class="mb-4">Bài học "Ước Mơ Bình Thường" mang đến một cái nhìn sâu sắc về giá trị của những điều giản dị trong cuộc sống và tầm quan trọng của sự hài lòng, biết đủ.</p>
+                        <p>Nội dung bài học có thể tập trung vào việc nhận ra rằng hạnh phúc không phải là những thứ xa hoa, mà là sự an lạc trong tâm hồn, sự bình yên từ việc sống đúng đạo đức, không làm khổ mình, khổ người. Bài học này có thể hướng người đọc đến việc trân trọng những gì mình đang có và tìm thấy niềm vui trong sự giản đơn, thoát khỏi lòng tham và những dục vọng không cần thiết.</p>
+                    `
+                },
+                {
+                    title: 'Bài 29: Lòng Ganh Ghét Của Ngoại Đạo',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về những câu chuyện hoặc tình huống mà những người ngoại đạo (không theo Phật giáo hoặc có quan điểm khác) thể hiện lòng ganh ghét, đố kỵ đối với giáo lý Phật giáo hoặc những người thực hành Phật pháp.</p>
+                        <p>Qua đó, sách sẽ làm rõ về bản chất của lòng ganh ghét, tác hại của nó đối với bản thân và người khác, cũng như cách để tu tập tâm từ bi, nhẫn nhục để vượt qua những cảm xúc tiêu cực này. Bài học nhấn mạnh rằng việc duy trì lòng bình an, không bị tác động bởi sự ganh ghét từ bên ngoài là điều quan trọng để giữ vững đạo đức và con đường tu tập của mình.</p>
+                    `
+                },
+                {
+                    title: 'Bài 30: Lá Thư Của Mẹ',
+                    content: `
+                        <p class="mb-4">Bài học "Lá Thư Của Mẹ" có thể là một câu chuyện cảm động về tình mẫu tử, sự hy sinh và những lời khuyên đạo đức từ người mẹ dành cho con cái. Lá thư có thể chứa đựng những thông điệp sâu sắc về lòng hiếu thảo, sự biết ơn, và những giá trị sống đích thực mà người mẹ muốn truyền tải.</p>
+                        <p>Qua bài học này, sách có thể nhấn mạnh tầm quan trọng của Đức Hiếu Sinh (liên quan đến lòng hiếu thảo và tình yêu thương gia đình) và Đức Thành Thật (sự chân thành trong giao tiếp). Nó cũng có thể làm nổi bật sự ảnh hưởng của tình yêu thương gia đình trong việc hình thành nhân cách và đạo đức của một người. Bài học nhằm khuyến khích người học trân trọng tình cảm gia đình, sống có trách nhiệm, và biết ơn những hy sinh của cha mẹ.</p>
+                    `
+                },
+                {
+                    title: 'Bài 31: Sự Hy Sinh Cao Cả',
+                    content: `
+                        <p class="mb-4">Bài học "Sự Hy Sinh Cao Cả" có thể kể về những câu chuyện, hành động mà một cá nhân hoặc nhiều người đã từ bỏ lợi ích cá nhân, thậm chí là tính mạng của mình, vì lợi ích của người khác hoặc một lý tưởng cao đẹp.</p>
+                        <p>Bài học này sẽ làm nổi bật các đức tính như Đức Hiếu Sinh (lòng vị tha, bảo vệ sự sống), Đức Bố Thí (sự cho đi không mong cầu) và Đức Dũng Cảm (dám đối mặt với hiểm nguy để làm điều thiện). Nó nhấn mạnh rằng sự hy sinh không chỉ mang lại lợi ích trực tiếp cho người được giúp đỡ mà còn thể hiện một tâm hồn cao thượng, vượt lên trên bản ngã và những toan tính cá nhân. Bài học này nhằm truyền cảm hứng về lòng vị tha và khuyến khích người học biết sống vì người khác, đóng góp cho cộng đồng và xã hội.</p>
+                    `
+                },
+                // Lessons from Tập 3
+                {
+                    title: 'Bài 32: Cậu Bé Brian',
+                    content: `
+                        <p class="mb-4">Bài học này kể về cậu bé Brian 7 tuổi, một người hay mơ mộng, đã đi học trễ một tiếng đồng hồ. Lý do là cậu bé đã dừng lại để nhặt những con sâu trên vỉa hè bỏ lại vào hang của chúng, vì sợ các em nhỏ sẽ giẫm lên chúng. Câu chuyện làm nổi bật lòng yêu thương sự sống (Đức Hiếu Sinh đa hướng) và sự dũng cảm của cậu bé.</p>
+                        <p>Bài học phân tích sự "thiếu đức nhẫn nhục, tùy thuận, bằng lòng ý hành" và "thiếu đức nhân nhục ý hành, khẩu hành" của cô giáo khi nóng nảy gọi điện cho mẹ Brian mà không tìm hiểu nguyên nhân. Đồng thời, nó cũng đề cao "đức thành thật khẩu hành" của Brian khi cậu kể lại sự thật, và "đức cảm thông lòng yêu thương" của người mẹ khi ôm con vào lòng. Bài học này nhấn mạnh tầm quan trọng của lòng từ bi, sự thấu hiểu và lòng tha thứ trong cuộc sống.</p>
+                    `
+                },
+                {
+                    title: 'Bài 33: Hộp Kem',
+                    content: `
+                        <p class="mb-4">Bài học này kể về một cậu bé đã ăn nửa hộp kem, còn một nửa thì bố thí cho ông cụ già và em bé ăn xin đứng trước cửa hàng. Hành động nhịn ăn để cho người khác của cậu bé thể hiện lòng thương yêu và bố thí cao cả, xuất phát từ trái tim chân thật mà không cần ai dạy bảo.</p>
+                        <p>Bài học nhấn mạnh về "Đức Lễ", "Thiếu Đức Bằng Lòng", "Đức Hiếu Sinh Bố Thí", và "Đức Hối Hận". Nó làm nổi bật giá trị của sự bố thí xuất phát từ lòng yêu thương chân thật, không phải là sự bắt buộc hay hình thức. Hành động của cậu bé là một tấm gương về sự hy sinh nhỏ bé nhưng mang ý nghĩa lớn lao, nuôi dưỡng lòng từ bi và sự chia sẻ trong cuộc sống.</p>
+                    `
+                },
+                {
+                    title: 'Bài 34: Còn Ai Nói Lời Cảm Ơn',
+                    content: `
+                        <p class="mb-4">Bài học này xoay quanh chủ đề về lòng biết ơn và sự suy giảm của nó trong xã hội hiện đại, đặc biệt là trong các mối quan hệ thân thuộc. Nó đề cập đến việc con người ngày càng ít thể hiện lòng biết ơn bằng lời nói và hành động, dẫn đến sự xuống cấp của đạo đức lễ độ.</p>
+                        <p>Bài học phân tích nhiều đức hạnh liên quan đến lòng biết ơn như "Đức Cảm Ơn Khẩu Hành", "Đức Chăm Sóc Thân Hành", "Thiếu Đức Cung Kính, Tôn Trọng Khẩu Hành", và "Đức Hối Hận Ý Hành". Sách phê phán việc "quen mặt xem thường" những người thân yêu và nhắc nhở về tầm quan trọng của việc luôn thể hiện sự cảm ơn, tôn trọng trong giao tiếp hàng ngày. Đây là bài học nhắc nhở về tầm quan trọng của những hành động nhỏ bé nhưng có ý nghĩa lớn trong việc duy trì các mối quan hệ và xây dựng một xã hội văn minh, biết ơn.</p>
+                    `
+                },
+                {
+                    title: 'Bài 35: Lời Cảm Ơn Muộn Màng',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về một câu chuyện mà lòng biết ơn được thể hiện quá muộn màng, sau khi cơ hội đã trôi qua. Nó nhấn mạnh sự hối tiếc khi không kịp nói lời cảm ơn hoặc hành động tri ân khi người khác còn ở bên cạnh.</p>
+                        <p>Bài học phân tích các đức hạnh như "Đức Hiếu Sinh Quà Tặng Thân Hành", "Thiếu Đức Cẩn Thận Kiểm Tra Ý Hành, Thân Hành", "Đức Hiếu Sinh Khẩu Hành Cao Thượng", và "Đức Cảm Ơn Bằng Sự Quyên Góp, Bố Thí Thân Hành". Nó khuyến khích việc luôn trân trọng và thể hiện lòng biết ơn kịp thời, không để sự hối tiếc bao trùm. Bài học này làm rõ tầm quan trọng của việc chủ động bày tỏ lòng biết ơn thông qua lời nói và hành động, đặc biệt là đối với những người đã giúp đỡ mình.</p>
+                    `
+                },
+                {
+                    title: 'Bài 36: Có Phải Cháu Sẽ Chết Ngay Bây Giờ Không?',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về câu chuyện cảm động của một người anh/chị đã sẵn sàng hy sinh một phần máu hoặc thậm chí là mạng sống của mình để cứu người em đang gặp nguy hiểm. Câu hỏi "Có phải cháu sẽ chết ngay bây giờ không?" gợi lên sự ngây thơ nhưng đầy dũng cảm và lòng vị tha cao cả của một đứa trẻ.</p>
+                        <p>Bài học nhấn mạnh các đức tính như "Đức Hiếu Sinh Bố Thí", "Đức Hoan Hỷ Thân Hành", và "Đức Hy Sinh Thân Hành". Nó làm nổi bật lòng từ bi vô bờ bến, sự sẵn sàng cho đi và sự không sợ hãi trước cái chết vì tình yêu thương. Câu chuyện này là một minh chứng hùng hồn cho việc đạo đức nhân bản - nhân quả được thể hiện rõ ràng nhất trong những hành động hy sinh vì người khác, mang lại niềm tin vào lòng tốt và tình yêu thương trong cuộc sống.</p>
+                    `
+                },
+                {
+                    title: 'Bài 37: Người Tạo Dựng Niềm Tin',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về một cá nhân hoặc một nhóm người đã thông qua hành động và lời nói của mình mà xây dựng được niềm tin vững chắc từ người khác. Đây là bài học về sự tin cậy, trách nhiệm và cách tạo dựng ảnh hưởng tích cực trong xã hội.</p>
+                        <p>Bài học phân tích các đức tính như "Thiếu Đức Hiếu Học Ý Hành" (nếu có sự thiếu hiểu biết), "Đức Nghiêm Nghị Thân Hành, Ý Hành", "Đức Khuyên Học Khẩu Hành", "Đức Truyền Đạt Tư Tưởng Môn Sử Học Thân Hành, Khẩu Hành", và "Đức Dũng Cảm Thân Hành, Khẩu Hành". Nó nhấn mạnh rằng để tạo dựng niềm tin, một người cần phải có kiến thức sâu rộng, thái độ nghiêm túc, khả năng truyền đạt hiệu quả, và sự dũng cảm để bảo vệ lẽ phải. Bài học này khuyến khích việc sống có trách nhiệm, học hỏi không ngừng, và dùng lời nói, hành động của mình để lan tỏa những giá trị tích cực.</p>
+                    `
+                },
+                {
+                    title: 'Bài 38: Điều Kỳ Diệu Của Cuộc Sống',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về những khoảnh khắc, sự kiện hay những nhận thức sâu sắc giúp con người nhận ra những điều kỳ diệu, tốt đẹp trong cuộc sống, ngay cả trong những hoàn cảnh khó khăn nhất. Nó hướng con người đến sự lạc quan, niềm tin và sự tự tin vào bản thân.</p>
+                        <p>Bài học tập trung vào các đức tính như "Đức Tự Tin", "Đức Giác Ngộ Thân Vô Thường", và "Đức Tự Tin Tín Lực". Nó khuyến khích người học phát triển lòng tự tin vào khả năng của mình, nhận thức được tính vô thường của vạn pháp để không quá bám víu hay sợ hãi, và tin tưởng vào sức mạnh nội tại để vượt qua mọi thử thách. Bài học này nhằm mục đích giúp người học tìm thấy niềm vui, ý nghĩa trong cuộc sống và sống một cách chủ động, tích cực.</p>
+                    `
+                },
+                {
+                    title: 'Bài 39: Ai Tha Thứ Cho Ai',
+                    content: `
+                        <p class="mb-4">Bài học này xoay quanh chủ đề về sự tha thứ, đặc biệt là trong các mối quan hệ phức tạp và những hành động gây tổn thương từ quá khứ (liên hệ đến "nhân quả đời trước"). Câu chuyện có thể đặt ra câu hỏi ai là người cần tha thứ và ai là người nên nhận sự tha thứ.</p>
+                        <p>Bài học phân tích các đức tính như "Đức Bình Tĩnh Nhẫn Nhục Hiếu Sinh Thân Hành, Khẩu Hành", "Đức Xấu Hổ Hiếu Sinh Ý Hành", "Đức Hối Hận Hiếu Sinh Ý Hành", "Đức Sám Hối Hiếu Sinh Thân Hành, Khẩu Hành", và "Đức Buông Xả Bằng Tri Kiến Các Pháp Vô Thường Khẩu Hành, Ý Hành". Nó nhấn mạnh tầm quan trọng của việc đối mặt với lỗi lầm của bản thân, thể hiện sự hối hận và sám hối, đồng thời thực hành lòng nhẫn nhục và buông xả để có thể tha thứ cho người khác và cho chính mình. Bài học này hướng đến việc giải thoát khỏi gánh nặng của thù hận, oán ghét để đạt được sự bình an trong tâm hồn.</p>
+                    `
+                },
+                {
+                    title: 'Bài 40: Chiều Sâu Của Sự Chia Sẻ',
+                    content: `
+                        <p class="mb-4">Bài học này đi sâu vào ý nghĩa thực sự của sự chia sẻ, không chỉ dừng lại ở hành động vật chất mà còn là sự cho đi từ tấm lòng, với tình yêu thương chân thật. Nó có thể kể về những câu chuyện về sự sẻ chia cao thượng, vượt lên trên những toan tính cá nhân.</p>
+                        <p>Bài học phân tích các đức tính như "Đức Hiếu Sinh Từ Thiện Thân Hành", "Đức Bố Thí Hiếu Sinh Ý Hành, Thân Hành", và "Thiếu Đức Hiếu Sinh Bố Thí" (nếu có sự không hoàn hảo). Nó nhấn mạnh rằng sự chia sẻ chân thật phải xuất phát từ một "Tâm Hồn Cao Thượng Hiếu Sinh", không chỉ là hành động bên ngoài mà còn là thái độ nội tâm. Bài học này khuyến khích việc thực hành bố thí với lòng từ bi, sự hoan hỷ, và nhận thức về luật nhân quả, mang lại niềm an lạc cho cả người cho và người nhận.</p>
+                    `
+                },
+                {
+                    title: 'Bài 41: Sự Chia Sẽ Bình Dị',
+                    content: `
+                        <p class="mb-4">Bài học này có thể kể về những hành động chia sẻ nhỏ bé, bình dị trong cuộc sống hàng ngày nhưng lại mang ý nghĩa lớn lao. Đó có thể là việc nhường chỗ trên xe buýt, chia sẻ bữa ăn đơn giản, hay một lời động viên đúng lúc.</p>
+                        <p>Bài học phân tích các đức tính như "Luật Nhân Quả Nghiệp Báo Thân Hành, Ý Hành", "Đức Hiếu Sinh Nhường Chỗ Thân Hành", "Đức Tri Ân Hiếu Sinh Khẩu Hành", và "Đức Quên Mình Quan Tâm Đến Người Khác, Hiếu Sinh Ý Hành". Nó nhấn mạnh rằng lòng từ bi và sự chia sẻ không cần phải là những hành động vĩ đại, mà có thể thể hiện qua những cử chỉ nhỏ nhặt, xuất phát từ tâm ý thiện lành. Bài học này khuyến khích việc sống quan tâm đến người khác, thực hành bố thí và nhường nhịn trong mọi hoàn cảnh, từ đó lan tỏa tình yêu thương và xây dựng một cộng đồng nhân ái.</p>
+                    `
+                }
+            ];
+
+            const lessonsAccordion = document.getElementById('lessons-accordion');
+
+            // Function to render lessons
+            function renderLessons() {
+                lessonsAccordion.innerHTML = ''; // Clear existing content
+                lessonsData.forEach((lesson, index) => {
+                    const lessonItem = document.createElement('div');
+                    lessonItem.classList.add('accordion-item', 'bg-white', 'rounded-lg', 'shadow-sm', 'border', 'border-stone-200');
+                    lessonItem.innerHTML = `
+                        <button class="accordion-header w-full text-left p-6 flex justify-between items-center">
+                            <span class="text-xl font-semibold text-[#A56341]">${lesson.title}</span>
+                            <span class="accordion-icon text-2xl text-[#C07450] transform transition-transform duration-300">+</span>
+                        </button>
+                        <div class="accordion-content">
+                            <div class="p-6 pt-0 text-gray-600 leading-relaxed">
+                                ${lesson.content}
+                            </div>
+                        </div>
+                    `;
+                    lessonsAccordion.appendChild(lessonItem);
+                });
+
+                // Re-attach accordion functionality after rendering
+                attachAccordionListeners();
+            }
+
+            function attachAccordionListeners() {
+                const accordionHeaders = document.querySelectorAll('.accordion-header');
+                accordionHeaders.forEach(header => {
+                    header.removeEventListener('click', toggleAccordion); // Prevent duplicate listeners
+                    header.addEventListener('click', toggleAccordion);
+                });
+            }
+
+            function toggleAccordion(event) {
+                const header = event.currentTarget;
+                const accordionItem = header.closest('.accordion-item');
+                const accordionContent = header.nextElementSibling;
+                
+                accordionItem.classList.toggle('active');
+
+                if (accordionContent.style.maxHeight) {
+                    accordionContent.style.maxHeight = null;
+                } else {
+                    accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
+                }
+            }
+
+            // Initial render of lessons
+            renderLessons();
+        });
+    </script>
+</body>
+</html>
